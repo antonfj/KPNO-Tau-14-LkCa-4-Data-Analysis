@@ -42,22 +42,22 @@ r_c = (m_p*G*M_star) / (4*k_B*T_wind)
 print("c_s (cm): ", c_s)
 print("r_c (cm): ", r_c)
 
-def parker_solar_wind(v_wind):
-	return (v_wind**2/c_s**2) - np.log(v_wind**2/c_s**2) - 4*np.log((r-R_star)/r_c) - 4*(r_c/(r-R_star)) + 3
+def parker_solar_wind(v_r):
+	return (v_r**2/c_s**2) - np.log(v_r**2/c_s**2) - 4*np.log((r-R_star)/r_c) - 4*(r_c/(r-R_star)) + 3
 
-v_wind = fsolve(parker_solar_wind, c_s)[0]
-print("v_wind (cm/s): ", v_wind)
+v_r = fsolve(parker_solar_wind, c_s)[0]
+print("v_r (cm/s): ", v_r)
 
-# Keplerian velocity
+# Keplerian velocity of planet
 v_k = np.sqrt(M_star*G/r)
 print("v_k (cm/s): ", v_k)
 
 # Effective velocity (Stellar wind velocity from planet frame of rest)
-v_eff = np.sqrt(v_k**2 + v_wind**2)
+v_eff = np.sqrt(v_k**2 + v_r**2)
 print("v_eff (cm/s): ", v_eff)
 
 # Stellar wind density
-density_sw = mass_loss_rate / (4*np.pi*v_wind*(r**2))
+density_sw = mass_loss_rate / (4*np.pi*v_r*(r**2))
 print("Mass density (g/cm^3): ", density_sw)
 
 Omega_s = (2*np.pi) / P_s			# Ang. vel. of star
@@ -67,7 +67,7 @@ B_phi = B_r * ((Omega_s*r)/v_eff)		# Azim. mag. field
 print("B_r (G): ", B_r*1e4)
 print("B_phi (G): ", B_phi*1e4)
 
-theta = np.arctan(B_phi/B_r) - np.arctan(v_k/v_wind)
+theta = np.arctan(B_phi/B_r) - np.arctan(v_k/v_r)
 B_star = np.sqrt(B_r**2 + B_phi**2)
 B_perp = B_star * np.sin(theta)
 
@@ -78,7 +78,7 @@ print("B_perp (G): ", B_perp*1e4)
 v_A = B_r / np.sqrt(4*np.pi * density_sw)
 print("Alfven speed: (cm/s): ", v_A)
 # Alfven Mach number
-M_A = v_eff / v_A
+M_A = v_r / v_A
 print("Alfven Mach number: ", M_A)
 
 # Calculate radius of magnetosphere
@@ -89,7 +89,7 @@ if R_m/R_p < 1.0:
     R_m = R_p
 
 # Electical field of stellar wind
-E_sw = v_wind * B_star * np.sin( np.arctan(B_phi/B_r) )
+E_sw = v_r * B_star * np.sin( np.arctan(B_phi/B_r) )
 print("Electrical field of stellar wind (statV/cm): ", E_sw)
 
 ################################################################################

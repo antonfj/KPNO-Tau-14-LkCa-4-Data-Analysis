@@ -24,7 +24,7 @@ mass_loss_rate = 1e-9 * (solar_mass/year)      # Mass loss rate of star in solar
 R_p = 1.00 * jupiter_radius	# Radius of planet in Jupiter radii
 r = 10 * R_star    		# Radial distance of planet from star
 B_star_0 = 1000                 # Magnetic field of star in G
-B_p = 50           		# Max. surface mag. field strength of planet in G
+B_p = 40          		# Max. surface mag. field strength of planet in G
 P_s = 1.86 * day      		# Rotation period of star in days
 d = 151.9 * parsec		# Distance to star in pc
 
@@ -42,11 +42,17 @@ r_c = (m_p*G*M_star) / (4*k_B*T_wind)
 print("c_s (cm): ", c_s)
 print("r_c (cm): ", r_c)
 
+# Radial stellar wind velocity
 def parker_solar_wind(v_r):
 	return (v_r**2/c_s**2) - np.log(v_r**2/c_s**2) - 4*np.log((r-R_star)/r_c) - 4*(r_c/(r-R_star)) + 3
 
 v_r = fsolve(parker_solar_wind, c_s)[0]
 print("v_r (cm/s): ", v_r)
+
+# Azimuthal stellar wind velocity
+Omega_s = (2*np.pi) / P_s			# Ang. vel. of star
+v_phi = (Omega_s * R_star**2)/r
+print("v_phi (cm/s): ", v_phi)
 
 # Keplerian velocity of planet
 v_k = np.sqrt(M_star*G/r)
@@ -60,9 +66,8 @@ print("v_eff (cm/s): ", v_eff)
 density_sw = mass_loss_rate / (4*np.pi*v_r*(r**2))
 print("Mass density (g/cm^3): ", density_sw)
 
-Omega_s = (2*np.pi) / P_s			# Ang. vel. of star
 B_r = B_star_0 * (R_star / r)**2	# Radial mag. field
-B_phi = B_r * ((Omega_s*r)/v_eff)		# Azim. mag. field
+B_phi = B_r * ((v_phi - Omega_s*r)/v_r)		# Azim. mag. field
 
 print("B_r (G): ", B_r*1e4)
 print("B_phi (G): ", B_phi*1e4)
@@ -88,17 +93,11 @@ print("R_m/R_p: ", R_m/R_p)
 if R_m/R_p < 1.0:
     R_m = R_p
 
-# Electical field of stellar wind
-E_sw = v_r * B_star * np.sin( np.arctan(B_phi/B_r) )
-print("Electrical field of stellar wind (statV/cm): ", E_sw)
-
 ################################################################################
 ############ Calculate theoretical Poynting flux density on star ###############
 ################################################################################
 S_th = (1/2) * R_m**2 * v_eff * (B_star * np.sin(theta))**2 * M_A
 print("Theoretical Poynting flux density (erg/s): ", S_th)
-S_th_max = (1/2) * R_m**2 * (E_sw*B_star) * M_A
-print("Theoretical max. Poynting flux density (erg/s): ", S_th_max)
 
 ################################################################################
 ### Calculate observationally inferred Poynting flux density on star ###########
